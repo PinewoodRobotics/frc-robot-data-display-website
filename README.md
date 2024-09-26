@@ -1,6 +1,7 @@
 # Real-Time Robot Data Dashboard
 
 ![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)
+![Tests](https://github.com/PinewoodRobotics/FRC-robot-data-display-website/actions/workflows/rust.yml/badge.svg)
 
 This project enables developers to leverage the powerful combination of **Next.js**, **Rust**, and **WPILib** to visualize and monitor live robot data in real-time via a browser. By harnessing modern web development technologies like **HTML**, **CSS**, and **TypeScript**, this dashboard offers a robust, customizable solution for tracking robot performance and diagnostics.
 
