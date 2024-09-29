@@ -17,7 +17,6 @@ impl TableEntree {
     }
 
     pub fn from_message(data: MessageData) -> Self {
-        //println!("{:?}", data);
         Self::new(data.topic_name, data.data.to_string(), data.timestamp)
     }
 
