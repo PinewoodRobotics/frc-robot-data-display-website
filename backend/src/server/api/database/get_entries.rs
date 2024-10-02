@@ -23,9 +23,11 @@ use super::codes;
 ///
 
 // This code essentially means that the "get_entries" function will be called when you make an api request to the /get-entries endpoint.
-#[post("/get-entries", data = "<table_topic>")]
+#[get("/get-entries?<topic>&<amount>&<time_since_last_update>")]
 pub fn get_entries(
-    table_topic: Json<Topic>,
+    topic: String,
+    amount: Option<u32>,
+    time_since_last_update: Option<u32>,
     database: &State<Arc<Mutex<SQLiteDatabase>>>,
 ) -> Json<Result<Vec<TableEntree>, codes::Error>> {
     let database = database.lock();
@@ -36,18 +38,18 @@ pub fn get_entries(
         )));
     }
 
-    if table_topic.amount.is_none() {
+    if amount.is_none() {
         return Json(Err(codes::Error::new(
             &codes::Error::DatabaseInvalidAmountError(-1),
         )));
     }
 
     let database = database.unwrap();
-    let amount = table_topic.amount.unwrap();
-    let values = if let Some(time) = table_topic.time_since_last_update {
-        database.get_values(&table_topic.topic, time, amount)
+    let amount = amount.unwrap();
+    let values = if let Some(time) = time_since_last_update {
+        database.get_values(&topic, time, amount)
     } else {
-        database.get_values_no_time(&table_topic.topic, amount)
+        database.get_values_no_time(&topic, amount)
     };
 
     Json(Ok(values.unwrap_or(vec![])))
@@ -79,9 +81,15 @@ mod tests {
         test_util::make_db_poisoned(database);
 
         let response = client
-            .post("/get-entries")
+            .get(test_util::to_get_request(
+                Topic {
+                    topic: "abc/non_existent_topic".to_string(),
+                    amount: None,
+                    time_since_last_update: None,
+                },
+                "/get-entries",
+            ))
             .header(ContentType::JSON)
-            .body(r#"{"topic":"non_existent_topic"}"#)
             .dispatch();
 
         let body = response.into_string().unwrap();
@@ -104,9 +112,15 @@ mod tests {
         let client = Client::tracked(rocket).expect("valid rocket instance");
 
         let response = client
-            .post("/get-entries")
+            .get(test_util::to_get_request(
+                Topic {
+                    topic: "abc/non_existent_topic".to_string(),
+                    amount: None,
+                    time_since_last_update: None,
+                },
+                "/get-entries",
+            ))
             .header(ContentType::JSON)
-            .body(r#"{"topic":"non_existent_topic"}"#)
             .dispatch();
 
         let body = response.into_string().unwrap();
@@ -130,9 +144,15 @@ mod tests {
         let client = Client::tracked(rocket).expect("valid rocket instance");
 
         let response = client
-            .post("/get-entries")
+            .get(test_util::to_get_request(
+                Topic {
+                    topic: "test".to_string(),
+                    amount: Some(3),
+                    time_since_last_update: None,
+                },
+                "/get-entries",
+            ))
             .header(ContentType::JSON)
-            .body(r#"{"topic": "test", "amount": 3}"#)
             .dispatch();
 
         let body = response.into_string().unwrap();
@@ -157,9 +177,15 @@ mod tests {
         let client = Client::tracked(rocket).expect("valid rocket instance");
 
         let response = client
-            .post("/get-entries")
+            .get(test_util::to_get_request(
+                Topic {
+                    topic: "test".to_string(),
+                    amount: Some(5),
+                    time_since_last_update: Some(4),
+                },
+                "/get-entries",
+            ))
             .header(ContentType::JSON)
-            .body(r#"{"topic": "test", "amount": 5, "time_since_last_update": 4}"#)
             .dispatch();
 
         let body = response.into_string().unwrap();
