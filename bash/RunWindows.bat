@@ -36,7 +36,7 @@ npm install
 echo Starting backend and server...
 
 :: Run backend and server simultaneously
-start "" cargo run --release
-start "" npm run dev
+start "" cmd /c "cargo run --release"
+start "" cmd /c "npm run dev"
 
 endlocal
