@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@keyframes tire-move {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(
+      -25%
+    ); /* Move by 1/4th of the extended background width */
+  }
+}

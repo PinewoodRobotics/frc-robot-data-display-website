@@ -14,6 +14,7 @@ import {
 } from "chart.js";
 import { MotorOutputChart } from "./components/MotorOutputChart";
 import { NetworkTableBridge } from "types_plugin_frc_nw_table";
+import Robot from "./components/Robot";
 
 ChartJS.register(
   CategoryScale,
@@ -30,6 +31,7 @@ export default function Home() {
     []
   );
   const [startPolling, setStart] = useState<boolean>(false);
+  const [angle, setAngle] = useState<number>(0);
 
   useEffect(() => {
     if (!startPolling) return;
@@ -41,13 +43,6 @@ export default function Home() {
 
       if (!response.Err && response.Ok) {
         const ok = response.Ok;
-        console.log(
-          JSON.stringify(response) +
-            " ! " +
-            parseFloat(ok.value) +
-            " ! " +
-            ok.timestamp
-        );
         setValue((prevValue) => [
           ...prevValue,
           {
@@ -63,6 +58,15 @@ export default function Home() {
     };
   }, [startPolling]);
 
+  useEffect(() => {
+    // Increment the angle periodically to simulate rotation
+    const interval = setInterval(() => {
+      setAngle((prevAngle) => (prevAngle + 2) % 360); // Increase angle and wrap around at 360 degrees
+    }, 50); // Update every 50ms (~20 updates per second)
+
+    return () => clearInterval(interval);
+  }, []);
+
   async function makeGetMotorOutputRequest() {
     const response = await fetch("/api/database/get-entry-and-clean", {
       method: "POST",
@@ -75,6 +79,26 @@ export default function Home() {
     return await response.json();
   }
 
+  // Calculate rotating vectors based on the current angle
+  const wheelVectors = [
+    {
+      x: Math.cos((angle * Math.PI) / 180),
+      y: Math.sin((angle * Math.PI) / 180),
+    },
+    {
+      x: Math.cos(((angle + 90) * Math.PI) / 180),
+      y: Math.sin(((angle + 90) * Math.PI) / 180),
+    },
+    {
+      x: Math.cos(((angle + 180) * Math.PI) / 180),
+      y: Math.sin(((angle + 180) * Math.PI) / 180),
+    },
+    {
+      x: Math.cos(((angle + 270) * Math.PI) / 180),
+      y: Math.sin(((angle + 270) * Math.PI) / 180),
+    },
+  ];
+
   return (
     <main className="flex flex-col gap-y-20">
       <button
@@ -85,8 +109,13 @@ export default function Home() {
       >
         Start Motor Output Getter
       </button>
-      <div className="bg-gray-700 w-3/4 mb-10 ml-5">
-        <MotorOutputChart data={value} />
+      <div className="bg-gray-700 w-fit h-fit px-32 py-24 rounded-lg mx-auto">
+        <Robot
+          width={400}
+          height={200}
+          wheelVectors={wheelVectors}
+          name="Rocinante"
+        />
       </div>
     </main>
   );

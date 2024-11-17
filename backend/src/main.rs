@@ -1,7 +1,5 @@
 use std::{
-    collections::HashMap,
     env,
-    os::unix::process,
     sync::{Arc, Mutex},
 };
 
@@ -61,7 +59,11 @@ async fn main() {
     );
 
     if database.is_err() {
-        println!("{}", "Failed to initialize database. Shutting down.".red());
+        println!(
+            "{} {}",
+            "Failed to initialize database. Shutting down.".red(),
+            database
+        );
         return ();
     }
 
