@@ -1,13 +1,26 @@
 "use client";
 
+import Arrow from "./Arrow";
 import Wheel from "./Wheel";
 
-export default function Robot(props: {
+export interface RobotProps {
   width: number;
   height: number;
-  wheelVectors: { x: number; y: number }[];
+  wheelPositions: Node[];
   name?: string;
-}) {
+  globalDirectionVector?: { x: number; y: number };
+  wheelSize?: number;
+  fontSize?: string;
+  className?: string;
+  path?: Node[];
+}
+
+export interface Node {
+  x: number;
+  y: number;
+}
+
+export default function Robot(props: RobotProps) {
   const wheelPositions = [
     { left: "10%", top: "10%" }, // Top Left
     { right: "10%", top: "10%" }, // Top Right
@@ -23,7 +36,6 @@ export default function Robot(props: {
         position: "relative",
       }}
     >
-      {/* Robot Body */}
       <div
         style={{
           position: "absolute",
@@ -31,45 +43,89 @@ export default function Robot(props: {
           left: 0,
           width: "100%",
           height: "100%",
-          border: "3px solid white",
-          borderRadius: "10px",
-          textAlign: "center",
-          textTransform: "uppercase",
-          fontWeight: "bold",
-          color: "white",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "1.5rem",
+          zIndex: 0,
         }}
       >
-        {props.name}
+        <svg width="100%" height="100%" className="overflow-visible">
+          {props.path && props.path.length > 0 && (
+            <path
+              d={`M ${props.width} ${props.height / 2} Q ${props.width + 50} ${
+                props.height / 2
+              } ${props.path[0].x} ${props.path[0].y} ${props.path
+                .slice(1)
+                .map((node) => `L ${node.x} ${node.y}`)
+                .join(" ")}`}
+              stroke="rgba(76, 175, 80, 0.6)"
+              strokeWidth={props.height / 2}
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          )}
+        </svg>
       </div>
 
-      {/* Wheels */}
-      {wheelPositions.map((pos, i) => {
-        const vector = props.wheelVectors[i] || { x: 0, y: 0 };
+      <div
+        className={
+          props.className +
+          " relative border-2 border-white overflow-visible z-10 w-full h-full"
+        }
+      >
+        {/* Robot Name */}
+        <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-white text-lg font-bold uppercase z-10">
+          {props.name}
+        </div>
 
-        // Calculate rotation angle in degrees
-        const angle = Math.atan2(vector.y, vector.x) * (180 / Math.PI);
+        {/* Wheels */}
+        {wheelPositions.map((pos, i) => {
+          const vector = props.wheelPositions[i];
+          const hasValidVector =
+            vector &&
+            typeof vector.x === "number" &&
+            typeof vector.y === "number";
+          const angle = hasValidVector
+            ? Math.atan2(vector.y, vector.x) * (180 / Math.PI)
+            : 0;
 
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              ...pos,
-              transform: `rotate(${angle}deg)`, // Rotate wheel
-              transformOrigin: "center",
-            }}
-          >
-            <Wheel
-              size={40}
-              speed={Math.sqrt(vector.x ** 2 + vector.y ** 2)} // Magnitude of vector as speed
-            />
-          </div>
-        );
-      })}
+          return (
+            <div
+              key={i}
+              style={{
+                position: "absolute",
+                ...pos,
+                transform: `rotate(${angle}deg)`,
+                transformOrigin: "center",
+              }}
+            >
+              <Wheel
+                size={props.wheelSize ?? 30}
+                speed={
+                  hasValidVector ? Math.sqrt(vector.x ** 2 + vector.y ** 2) : 0
+                }
+              />
+            </div>
+          );
+        })}
+
+        {/* Global Direction Vector */}
+        {props.globalDirectionVector && (
+          <Arrow
+            x={props.width / 2}
+            y={props.height / 2}
+            angle={
+              Math.atan2(
+                props.globalDirectionVector.y,
+                props.globalDirectionVector.x
+              ) *
+              (180 / Math.PI)
+            }
+            length={50}
+            width={4}
+            headSize={12}
+            color="yellow"
+          />
+        )}
+      </div>
     </div>
   );
 }

@@ -56,9 +56,10 @@ export default function Wheel({ speed, size = 40 }: WheelProps) {
               rgba(0, 0, 0, 1) 80%,
               rgba(0, 0, 0, 1) 100%
             )`,
-            animation: animationDuration
-              ? `tire-move ${animationDuration}ms linear infinite`
-              : "none",
+            animationName: animationDuration ? "tire-move" : "none",
+            animationDuration: `${animationDuration}ms`,
+            animationTimingFunction: "linear",
+            animationIterationCount: "infinite",
             animationDirection: speed > 0 ? "normal" : "reverse",
           }}
         />
