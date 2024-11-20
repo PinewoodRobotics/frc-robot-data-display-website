@@ -62,7 +62,7 @@ async fn main() {
         println!(
             "{} {}",
             "Failed to initialize database. Shutting down.".red(),
-            database
+            database.err().unwrap()
         );
         return ();
     }
