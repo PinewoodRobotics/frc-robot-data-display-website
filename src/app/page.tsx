@@ -37,6 +37,10 @@ export default function Home() {
     },
   ]);
 
+  const [odometry, setOdometry] = useState<Node[]>([]);
+
+  // robot/odometry
+
   const fetchWheelPositions = useCallback(async () => {
     const response = await NetworkTableBridge.getEntryAndClean({
       topic: "robot_wheel_positions",
@@ -89,9 +93,27 @@ export default function Home() {
     }
   }, []);
 
+  const fetchOdometry = useCallback(async () => {
+    const response = await NetworkTableBridge.getEntryAndClean({
+      topic: "robot/odometry",
+    });
+
+    if (!response.Err && response.Ok && response.Ok.topic !== "ERROR") {
+      try {
+        console.log(response.Ok.value);
+        setOdometry(JSON.parse(response.Ok.value));
+      } catch (error) {
+        console.error("Error parsing odometry data:", error);
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (startPolling) {
-      const interval = setInterval(fetchWheelPositions, 25);
+      const interval = setInterval(() => {
+        fetchWheelPositions();
+        fetchOdometry();
+      }, 25);
       return () => clearInterval(interval);
     }
   }, [startPolling, fetchWheelPositions]);
@@ -102,7 +124,7 @@ export default function Home() {
         className="w-60 h-40 bg-blue-500 m-5"
         onClick={() => setStart(true)}
       >
-        Start Motor Output Getter
+        Start Output Getter
       </button>
       <div className="bg-gray-700 w-fit h-fit px-32 py-24 rounded-lg mx-auto">
         <Robot width={400} height={200} wheelPositions={wheelPositions} />
@@ -127,3 +149,5 @@ export default function Home() {
     </main>
   );
 }
+
+// TODO:
