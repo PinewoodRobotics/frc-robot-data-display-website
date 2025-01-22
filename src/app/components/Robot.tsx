@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Arrow from "./Arrow";
 import Wheel from "./Wheel";
 
@@ -13,6 +14,11 @@ export interface RobotProps {
   fontSize?: string;
   className?: string;
   path?: Node[];
+  showTrail?: boolean;
+  trailPositions?: Node[];
+  trailColor?: string;
+  trailWidth?: number;
+  rotationVector?: { x: number; y: number };
 }
 
 export interface Node {
@@ -28,6 +34,12 @@ export default function Robot(props: RobotProps) {
     { right: "10%", bottom: "10%" }, // Bottom Right
   ];
 
+  // Calculate rotation angle from the rotation vector
+  const rotationAngle = props.rotationVector
+    ? Math.atan2(props.rotationVector.y, props.rotationVector.x) *
+      (180 / Math.PI)
+    : 0;
+
   return (
     <div
       style={{
@@ -35,6 +47,7 @@ export default function Robot(props: RobotProps) {
         height: props.height,
         position: "relative",
       }}
+      className="z-10"
     >
       <div
         style={{
@@ -47,6 +60,20 @@ export default function Robot(props: RobotProps) {
         }}
       >
         <svg width="100%" height="100%" className="overflow-visible">
+          {props.showTrail &&
+            props.trailPositions &&
+            props.trailPositions.length > 1 && (
+              <path
+                d={`M ${props.trailPositions
+                  .map((node) => `${node.x} ${node.y}`)
+                  .join(" L ")}`}
+                stroke={props.trailColor ?? "rgba(255, 255, 255, 0.3)"}
+                strokeWidth={props.trailWidth ?? 2}
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
           {props.path && props.path.length > 0 && (
             <path
               d={`M ${props.width} ${props.height / 2} Q ${props.width + 50} ${
@@ -68,8 +95,12 @@ export default function Robot(props: RobotProps) {
       <div
         className={
           props.className +
-          " relative border-2 border-white overflow-visible z-10 w-full h-full"
+          " relative border-2 border-white overflow-visible z-10 w-full h-full rounded-lg bg-green-800"
         }
+        style={{
+          transform: `rotate(${rotationAngle}deg)`,
+          transformOrigin: "center",
+        }}
       >
         {/* Robot Name */}
         <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center text-white text-lg font-bold uppercase z-10">
