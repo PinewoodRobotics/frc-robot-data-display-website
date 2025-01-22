@@ -1,5 +1,4 @@
 use std::{
-    future::Future,
     net::{Ipv4Addr, SocketAddrV4},
     str::FromStr,
     sync::{Arc, Mutex},
@@ -8,7 +7,7 @@ use std::{
 use network_tables::v4::{MessageData, SubscriptionOptions};
 use tokio::task::spawn_local;
 
-use crate::database::{self, structs::table_entree::TableEntree, SQLiteDatabase};
+use crate::database::{structs::table_entree::TableEntree, SQLiteDatabase};
 
 /// # Function
 /// This function is used to connect to the network table and to keep the data in sync. It will periodically try to reconnect if it fails to connect.

@@ -103,6 +103,18 @@ export default function Robot(props: RobotProps) {
                   hasValidVector ? Math.sqrt(vector.x ** 2 + vector.y ** 2) : 0
                 }
               />
+              {/* Add wheel direction arrows */}
+              {hasValidVector && (
+                <Arrow
+                  x={(props.wheelSize ?? 30) / 2}
+                  y={(props.wheelSize ?? 30) / 2}
+                  angle={angle}
+                  length={25}
+                  width={2}
+                  headSize={8}
+                  color="cyan"
+                />
+              )}
             </div>
           );
         })}

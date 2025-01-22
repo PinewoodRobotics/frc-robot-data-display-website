@@ -9,6 +9,7 @@ interface ArrowProps {
   headSize?: number; // size of arrow head
   color?: string; // color of arrow
   className?: string; // additional CSS classes
+  showHead?: boolean; // option to hide arrow head and just show line
 }
 
 export default function Arrow({
@@ -20,6 +21,7 @@ export default function Arrow({
   headSize = 12,
   color = "white",
   className = "",
+  showHead = true,
 }: ArrowProps) {
   // Convert angle to radians
   const angleRad = (angle - 90) * (Math.PI / 180);
@@ -53,20 +55,22 @@ export default function Arrow({
       <line
         x1={x}
         y1={y}
-        x2={endX - headSize * Math.cos(angleRad)}
-        y2={endY - headSize * Math.sin(angleRad)}
+        x2={showHead ? endX - headSize * Math.cos(angleRad) : endX}
+        y2={showHead ? endY - headSize * Math.sin(angleRad) : endY}
         stroke={color}
         strokeWidth={width}
         strokeLinecap="round"
       />
       {/* Arrow head */}
-      <polygon
-        points={`${endX},${endY} ${head1X},${head1Y} ${head2X},${head2Y}`}
-        fill={color}
-        stroke={color}
-        strokeWidth={1}
-        strokeLinejoin="round"
-      />
+      {showHead && (
+        <polygon
+          points={`${endX},${endY} ${head1X},${head1Y} ${head2X},${head2Y}`}
+          fill={color}
+          stroke={color}
+          strokeWidth={1}
+          strokeLinejoin="round"
+        />
+      )}
     </svg>
   );
 }
