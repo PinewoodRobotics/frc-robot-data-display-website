@@ -92,8 +92,8 @@ export default function Home() {
         <div className="mx-5 h-full">
           <PlayingField showAxes={true} axisColor="#4b5563">
             <FieldObject
-              x={odometry.x * 100}
-              y={odometry.y * 100}
+              x={0}
+              y={0}
               objDimensions={{ width: 150, height: 150 }}
             >
               <Robot

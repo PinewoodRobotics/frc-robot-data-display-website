@@ -31,7 +31,8 @@ if %ERRORLEVEL% neq 0 (
 ) 
 
 echo Downloading npm dependencies...
-npm install
+
+call npm install || (echo NPM install failed && exit /b)
 
 echo Starting backend and server...
 
