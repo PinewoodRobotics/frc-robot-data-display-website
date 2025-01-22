@@ -13,6 +13,9 @@ use crate::database::{structs::table_entree::TableEntree, SQLiteDatabase};
 /// This function is used to connect to the network table and to keep the data in sync. It will periodically try to reconnect if it fails to connect.
 /// This is needed because, again, the "main" function would be too long if I were to put the contents of this function inside it
 ///
+/// # Note
+/// The WPILib network table only sends data if it is updated!
+///
 /// # Parameters
 /// - `url`: The url of the network table
 /// - `port`: The port of the network table
@@ -82,7 +85,7 @@ pub fn begin_network_table(
 
             let mut subscription = subscription.unwrap();
             while let Some(message) = subscription.next().await {
-                //println!("Received message: {:?}", message);
+                // println!("Received message: {:?}", message);
                 let _ = function_to_call(message, database.clone());
             }
         }

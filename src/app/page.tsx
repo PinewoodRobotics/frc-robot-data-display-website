@@ -14,7 +14,13 @@ import {
 } from "chart.js";
 import { NetworkTableBridge } from "types_plugin_frc_nw_table";
 import Robot, { Node } from "./components/Robot";
-import { FieldObject, Obstacle, PlayingField } from "./components/PlayingField";
+import {
+  FieldObject,
+  FieldText,
+  Obstacle,
+  PlayingField,
+  VelocityMeter,
+} from "./components/PlayingField";
 
 ChartJS.register(
   CategoryScale,
@@ -37,9 +43,7 @@ export default function Home() {
     },
   ]);
 
-  const [odometry, setOdometry] = useState<Node[]>([]);
-
-  // robot/odometry
+  const [odometry, setOdometry] = useState<Node>({ x: 0, y: 0 });
 
   const fetchWheelPositions = useCallback(async () => {
     const response = await NetworkTableBridge.getEntryAndClean({
@@ -48,45 +52,8 @@ export default function Home() {
 
     if (!response.Err && response.Ok && response.Ok.topic !== "ERROR") {
       try {
-        let data = response.Ok.value;
-
-        // Handle double stringification
-        if (typeof data === "string") {
-          try {
-            data = JSON.parse(data);
-          } catch (error) {
-            console.error("Error parsing data:", data, error);
-            return; // Exit early if parsing fails
-          }
-        }
-
-        console.log("Data:", data);
-
-        // Handle the case where data is still a string
-        if (typeof data === "string") {
-          try {
-            data = JSON.parse(data); // Parse again if needed
-          } catch (error) {
-            console.error("Error parsing data a second time:", data, error);
-            return; // Exit early if parsing fails
-          }
-        }
-
-        // Validate the structure
-        if (Array.isArray(data)) {
-          const validData = data.filter(
-            (v) =>
-              v &&
-              typeof v.x === "number" &&
-              typeof v.y === "number" &&
-              !isNaN(v.x) &&
-              !isNaN(v.y)
-          );
-
-          setWheelPositions(validData);
-        } else {
-          console.error("Data is not a valid array:", data);
-        }
+        const data = JSON.parse(JSON.parse(response.Ok.value));
+        setWheelPositions(data);
       } catch (error) {
         console.error("Error parsing wheel positions:", error);
       }
@@ -95,13 +62,13 @@ export default function Home() {
 
   const fetchOdometry = useCallback(async () => {
     const response = await NetworkTableBridge.getEntryAndClean({
-      topic: "robot/odometry",
+      topic: "robot_odometry",
     });
 
     if (!response.Err && response.Ok && response.Ok.topic !== "ERROR") {
       try {
-        console.log(response.Ok.value);
-        setOdometry(JSON.parse(response.Ok.value));
+        const data = JSON.parse(JSON.parse(response.Ok.value));
+        setOdometry(data);
       } catch (error) {
         console.error("Error parsing odometry data:", error);
       }
@@ -114,37 +81,43 @@ export default function Home() {
         fetchWheelPositions();
         fetchOdometry();
       }, 25);
+
       return () => clearInterval(interval);
     }
-  }, [startPolling, fetchWheelPositions]);
+  }, [startPolling, fetchWheelPositions, fetchOdometry]);
 
   return (
-    <main className="flex flex-col gap-y-20">
-      <button
-        className="w-60 h-40 bg-blue-500 m-5"
-        onClick={() => setStart(true)}
-      >
-        Start Output Getter
-      </button>
-      <div className="bg-gray-700 w-fit h-fit px-32 py-24 rounded-lg mx-auto">
-        <Robot width={400} height={200} wheelPositions={wheelPositions} />
+    <main className="flex flex-col">
+      <div className="w-1/3 h-[600px]">
+        <div className="mx-5 h-full">
+          <PlayingField showAxes={true} axisColor="#4b5563">
+            <FieldObject
+              x={0}
+              y={0}
+              objDimensions={{ width: 150, height: 150 }}
+            >
+              <Robot
+                width={150}
+                height={150}
+                wheelPositions={wheelPositions}
+                wheelSize={20}
+                globalDirectionVector={{ x: 0, y: 1 }}
+                rotationVector={{ x: 0.5, y: 1 }}
+              />
+            </FieldObject>
+            <div className="absolute top-2 left-2 w-16 h-64">
+              <VelocityMeter velocity={1} maxVelocity={10} />
+            </div>
+          </PlayingField>
+        </div>
       </div>
-      <div className="w-[800px] h-[600px] mx-auto">
-        <PlayingField>
-          <FieldObject
-            {...obstacles[0]}
-            className="bg-red-500 rounded-md w-10 h-10"
-          />
-          <FieldObject x={0} y={0}>
-            <Robot
-              width={150}
-              height={100}
-              wheelPositions={wheelPositions}
-              wheelSize={20}
-              globalDirectionVector={{ x: 0, y: 1 }}
-            />
-          </FieldObject>
-        </PlayingField>
+      <div className="flex justify-center mt-10">
+        <button
+          className="w-32 h-16 bg-blue-500 m-5 rounded-lg"
+          onClick={() => setStart(!startPolling)}
+        >
+          {startPolling ? "Stop Output Getter" : "Start Output Getter"}
+        </button>
       </div>
     </main>
   );
